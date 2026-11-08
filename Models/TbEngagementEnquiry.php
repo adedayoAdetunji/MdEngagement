@@ -1,0 +1,8 @@
+<?php
+
+namespace Lt\Modules\MdEngagement\Models;
+
+class TbEngagementEnquiry extends \LtModel {
+}
+
+

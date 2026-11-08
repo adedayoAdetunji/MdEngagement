@@ -1,0 +1,10 @@
+<?php
+namespace Lt\Modules\MdEngagement\Services;
+
+use Lt\Modules\MdEngagement\Models\TbEngagementSubscriber;
+        
+class TbEngagementSubscriberService
+{
+
+}
+

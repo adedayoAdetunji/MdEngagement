@@ -1,0 +1,211 @@
+
+        <style>
+
+        main{
+            max-width:1536px;
+            margin:48px auto;
+            padding:20px 24px
+           
+        }
+        .hero{
+            padding:30px 0 20px
+        }
+        .eyebrow{
+            font-weight:750;
+            text-transform:uppercase;
+            letter-spacing:.13em;
+            color:#25716a;
+            font-size:.78rem
+        }
+        h1{
+            font-size:clamp(2rem,6vw,4rem);
+            line-height:1.05;
+            letter-spacing:-.05em;
+            margin:.25em 0
+        }
+        h2{
+            margin:0 0 8px;
+            font-size:1.2rem
+        }
+        .grid{
+            display:grid;
+            grid-template-columns:minmax(0,2fr) minmax(0,1fr);
+            gap:20px
+        }
+        .card{
+            background:#fff;
+            border:1px solid #dce7e5;
+            border-radius:20px;
+            padding:clamp(18px,4vw,32px);
+            box-shadow:0 8px 30px #102e3009
+        }
+        .aside{
+            background:#e8f2ef
+        }
+        .muted{
+            color:#4e6565
+        }
+        label{
+            display:block;
+            font-weight:650;
+            margin:0 0 14px
+        }
+        input:not([type=checkbox]),textarea,select{
+            display:block;
+            width:100%;
+            font:inherit;
+            border:1px solid #a8beba;
+            border-radius:10px;
+            padding:10px 12px;
+            margin-top:5px;
+            background:white;
+            color:inherit
+        }
+        textarea{
+            resize:vertical
+        }
+        button{
+            font:inherit;
+            font-weight:700;
+            border:0;
+            background:#125d54;
+            color:white;
+            border-radius:10px;
+            padding:10px 16px;
+            cursor:pointer
+        }
+        button:disabled{
+            opacity:.5;
+            cursor:default
+        }
+        button.secondary{
+            background:#e8f2ef;
+            color:#125d54
+        }
+        #unsubscribe-link{
+            color:#125d54
+        }
+        .pair,.tools{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            align-items:center
+        }
+        .pair>label{
+            flex:1;
+            min-width:190px
+        }
+        .tools label{
+            margin:0 0 12px
+        }
+        .record{
+            border-top:1px solid #dce7e5;
+            padding:16px 0;
+            overflow-wrap:anywhere
+        }
+        .record p{
+            white-space:pre-wrap
+        }
+        .record select{
+            width:auto;
+            max-width:100%
+        }
+        #notice{
+            min-height:1.6em;
+            font-weight:650
+        }
+        #notice[data-error=true]{
+            color:#a12626
+        }
+        @media(max-width:680px){
+            .grid{
+                grid-template-columns:1fr
+            }
+            main{
+                padding:14px
+            }
+
+        }
+        </style>
+    </head>
+    <body data-mode="signup">
+        <main>
+            <div class="hero">
+                <p class="eyebrow">Engagement center</p>
+                <h1>Stay in the loop</h1>
+                <p class="muted">Sign up for news and updates by email.</p>
+            </div>
+            <div class="grid">
+                <section class="card">
+                    <form>
+                        <label>Email address<input name="email" type="email" maxlength="254" autocomplete="email" required>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="consent" required> I agree to receive newsletter emails.
+                        </label>
+                        <button type="submit">Subscribe</button>
+                    </form>
+                    <a id="unsubscribe-link" hidden>Save your unsubscribe link</a>
+                    <p id="notice" role="status"></p>
+                </section>
+                <aside class="card aside">
+                    <h2>You’re in control</h2>
+                    <p class="muted">Keep the unsubscribe link provided at signup so you can opt out later.</p>
+                </aside>
+            </div>
+            <footer>Engagement center</footer>
+        </main>
+        <?php ltImport('MdEngagement','Script.js') ?>
+        <script>
+            const settings = {
+                unsubscribePage: 'Newsletter-unsubscribe'
+            };
+            const notice = document.querySelector('#notice');
+            const report = (message, error = false) => {
+                notice.textContent = message;
+                notice.dataset.error = error;
+            };
+
+            async function api(path, method = 'GET', body) {
+                const response = await fetch(BASE.replace(/\/$/, '') + '/engagement/' + path, {
+                    method,
+                    credentials: 'same-origin',
+                    headers: body ? {'Accept': 'application/json', 'Content-Type': 'application/json'} : {'Accept': 'application/json'},
+                    body: body ? JSON.stringify(body) : undefined
+                });
+                const result = await response.json().catch(() => null);
+                if (!response.ok || String(result?.responseCategory) !== '200') {
+                    throw new Error(result?.responseResult || 'Could not reach the module. Check the API address.');
+                }
+                return result;
+            }
+
+            const form = document.querySelector('form');
+            form.addEventListener('submit', async event => {
+                event.preventDefault();
+                const button = form.querySelector('button');
+                button.disabled = true;
+                report('Sending…');
+                const data = {
+                    email: form.elements.email.value.trim(),
+                    consent: form.elements.consent.checked
+                };
+                try {
+                    const result = await api('subscribers', 'POST', data);
+                    form.reset();
+                    report(result.responseResult || 'Signup received.');
+                    const link = document.querySelector('#unsubscribe-link');
+                    const token = result.responseData?.unsubscribeToken;
+                    link.hidden = !token;
+                    if (token) {
+                        link.href = settings.unsubscribePage + '#token=' + encodeURIComponent(token);
+                    }
+                } catch (error) {
+                    report(error.message, true);
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        </script>
+    </body>
+</html>

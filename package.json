@@ -1,0 +1,17 @@
+{
+    "ltId": "179395723519157",
+    "packageName": "MdEngagement",
+    "packageType": "module",
+    "version": "1.0.0",
+    "dependsOn": [
+        {
+            "packageName": "MdLt",
+            "version": "1.3.9"
+        }
+    ],
+    "isPublished": "0",
+    "readme": "See README.md",
+    "description": "Contact enquiries and newsletter subscriptions",
+    "languageUsed": "PHP, HTML, CSS, JavaScript",
+    "ltVersion": "2.7.4"
+}

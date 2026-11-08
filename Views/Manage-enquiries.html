@@ -1,0 +1,251 @@
+
+    <style>
+        main{
+            max-width:1536px;
+            margin:48px auto;
+            padding:20px 24px
+           
+        }
+        .hero{
+            padding:30px 0 20px
+        }
+        .eyebrow{
+            font-weight:750;
+            text-transform:uppercase;
+            letter-spacing:.13em;
+            color:#25716a;
+            font-size:.78rem
+        }
+        h1{
+            font-size:clamp(2rem,6vw,4rem);
+            line-height:1.05;
+            letter-spacing:-.05em;
+            margin:.25em 0
+        }
+        h2{
+            margin:0 0 8px;
+            font-size:1.2rem
+        }
+        .grid{
+            display:grid;
+            grid-template-columns:minmax(0,2fr) minmax(0,1fr);
+            gap:20px
+        }
+        .card{
+            background:#fff;
+            border:1px solid #dce7e5;
+            border-radius:20px;
+            padding:clamp(18px,4vw,32px);
+            box-shadow:0 8px 30px #102e3009
+        }
+        .aside{
+            background:#e8f2ef
+        }
+        .muted{
+            color:#4e6565
+        }
+        label{
+            display:block;
+            font-weight:650;
+            margin:0 0 14px
+        }
+        input:not([type=checkbox]),textarea,select{
+            display:block;
+            width:100%;
+            font:inherit;
+            border:1px solid #a8beba;
+            border-radius:10px;
+            padding:10px 12px;
+            margin-top:5px;
+            background:white;
+            color:inherit
+        }
+        textarea{
+            resize:vertical
+        }
+        button{
+            font:inherit;
+            font-weight:700;
+            border:0;
+            background:#125d54;
+            color:white;
+            border-radius:10px;
+            padding:10px 16px;
+            cursor:pointer
+        }
+        button:disabled{
+            opacity:.5;
+            cursor:default
+        }
+        button.secondary{
+            background:#e8f2ef;
+            color:#125d54
+        }
+        .tools{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            align-items:center
+        }
+        .tools label{
+            margin:0 0 12px
+        }
+        .record{
+            border-top:1px solid #dce7e5;
+            padding:16px 0;
+            overflow-wrap:anywhere
+        }
+        .record p{
+            white-space:pre-wrap
+        }
+        .record select{
+            width:auto;
+            max-width:100%
+        }
+        #notice{
+            min-height:1.6em;
+            font-weight:650
+        }
+        #notice[data-error=true]{
+            color:#a12626
+        }
+        footer{
+            padding:20px 0;
+            color:#4e6565;
+            font-size:.9rem
+        }
+        @media(max-width:680px){
+            .grid{
+                grid-template-columns:1fr
+            }
+            main{
+                padding:14px
+            }
+        }
+        </style>
+    </head>
+    <body data-mode="admin-enquiries">
+        <main>
+            <div class="hero">
+                <p class="eyebrow">Staff workspace</p>
+                <h1>Enquiry inbox</h1>
+                <p class="muted">Read incoming messages and update their status.</p>
+            </div>
+            <section class="card">
+                <p id="notice" role="status">
+                </p>
+                <div class="tools">
+                    <label>Filter by status<select id="filter">
+                    <option value="">All statuses</option>
+                    <option value="new">New</option>
+                    <option value="read">Read</option>
+                    <option value="resolved">Resolved</option>
+                </select>
+            </label>
+        </div>
+        <div id="records">
+        </div>
+        <div class="tools">
+            <button id="previous" class="secondary" disabled>Previous</button>
+            <button id="next" class="secondary" disabled>Next</button>
+        </div>
+    </section>
+    <footer>Engagement center</footer>
+     <?php ltImport('MdEngagement','Script.js') ?>
+</main>
+        <script>
+            const notice = document.querySelector('#notice');
+            const report = (message, error = false) => {
+                notice.textContent = message;
+                notice.dataset.error = error;
+            };
+
+            async function api(path, method = 'GET', body) {
+                const response = await fetch(BASE.replace(/\/$/, '') + '/engagement/' + path, {
+                    method,
+                    credentials: 'same-origin',
+                    headers: {'Authorization': `Bearer ${LWTOKEN}`,'Accept': 'application/json', 'Content-Type': 'application/json'},
+                    body: body ? JSON.stringify(body) : undefined
+                });
+                const result = await response.json().catch(() => null);
+                if (!response.ok || String(result?.responseCategory) !== '200') {
+                    throw new Error(result?.responseResult || 'Could not load data. Check session and permissions.');
+                }
+                return result;
+            }
+
+            const filter = document.querySelector('#filter');
+            const list = document.querySelector('#records');
+            const previous = document.querySelector('#previous');
+            const next = document.querySelector('#next');
+            let page = 1;
+            let loading = false;
+
+            function add(parent, tag, value) {
+                const node = document.createElement(tag);
+                node.textContent = value;
+                parent.append(node);
+                return node;
+            }
+
+            async function load() {
+                if (loading) return;
+                loading = true;
+                filter.disabled = previous.disabled = next.disabled = true;
+                list.replaceChildren();
+                report('Loading enquiries…');
+
+                try {
+                    const { responseData } = await api('admin/enquiries?' + new URLSearchParams({ page, status: filter.value }));
+                    const items = responseData?.items || [];
+
+                    for (const row of items) {
+                        const card = add(list, 'article', '');
+                        card.className = 'record';
+                        add(card, 'h2', row.subject);
+                        add(card, 'p', `${row.full_name} · ${row.email} · ${row.created_at}`);
+                        add(card, 'p', row.message);
+
+                        const label = add(card, 'label', 'Status');
+                        const select = add(label, 'select', '');
+                        for (const s of ['new', 'read', 'resolved']) {
+                            add(select, 'option', s).value = s;
+                        }
+                        select.value = row.status;
+
+                        select.addEventListener('change', async () => {
+                            select.disabled = true;
+                            try {
+                                await api('admin/enquiries/status', 'PATCH', { ltId: row.lt_id, status: select.value });
+                                row.status = select.value;
+                                if (filter.value && filter.value !== row.status) {
+                                    card.remove();
+                                }
+                                report('Status saved.');
+                            } catch (error) {
+                                select.value = row.status;
+                                report(error.message, true);
+                            } finally {
+                                select.disabled = false;
+                            }
+                        });
+                    }
+
+                    next.disabled = !responseData?.hasMore;
+                    report(items.length ? `Page ${page}` : 'No enquiries found.');
+                } catch (error) {
+                    report(error.message, true);
+                } finally {
+                    loading = filter.disabled = false;
+                    previous.disabled = page === 1;
+                }
+            }
+
+            filter.addEventListener('change', () => { page = 1; load(); });
+            previous.addEventListener('click', () => { page--; load(); });
+            next.addEventListener('click', () => { page++; load(); });
+
+            load();
+        </script>
+    </body>
+</html>

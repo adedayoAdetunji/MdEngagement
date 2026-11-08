@@ -1,0 +1,8 @@
+[
+    {
+        "tableData": "CREATE TABLE IF NOT EXISTS `tb_engagement_enquiry` (\n  `lt_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `full_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `email` varchar(254) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `subject` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,\n  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'new',\n  `created_at` datetime NOT NULL,\n  `updated_at` datetime NOT NULL,\n  PRIMARY KEY (`lt_id`),\n  KEY `idx_enquiry_status` (`status`),\n  KEY `idx_enquiry_created_at` (`created_at`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    },
+    {
+        "tableData": "CREATE TABLE IF NOT EXISTS `tb_engagement_subscriber` (\n  `lt_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `email` varchar(254) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `token_hash` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active',\n  `consented_at` datetime NOT NULL,\n  `unsubscribed_at` datetime DEFAULT NULL,\n  `created_at` datetime NOT NULL,\n  `updated_at` datetime NOT NULL,\n  PRIMARY KEY (`lt_id`),\n  UNIQUE KEY `uk_subscriber_email` (`email`),\n  KEY `idx_subscriber_token_hash` (`token_hash`),\n  KEY `idx_subscriber_status` (`status`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    }
+]
