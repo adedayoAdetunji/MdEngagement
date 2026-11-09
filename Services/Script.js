@@ -1,8 +1,8 @@
 <script>
-    const BASE = BASE_URL ? BASE_URL : "<?= ApiTokenDetails::backEndBaseUrl(); ?>";
-    const siteAddress = siteHostAddress ? siteHostAddress : "<?= ltSiteHostAddress() ?>";
+    const BASE_ENGAGE = "<?= ApiTokenDetails::backEndBaseUrl(); ?>";
+    const siteAddressEngage = "<?= ltSiteHostAddress() ?>";
     const getTokenNameNew = "<?= ApiTokenDetails::tokenName(); ?>";
 
-    const LWTOKEN = localStorage.getItem(`${getTokenNameNew}`);
+    const LW_TOKEN_ENGAGE = localStorage.getItem(`${getTokenNameNew}`);
     
 </script>
