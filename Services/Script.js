@@ -1,8 +1,9 @@
+<?php ltImport('MdLt','LtGlobalConfig.js') ?>
 <script>
-    const BASE_ENGAGE = "<?= ApiTokenDetails::backEndBaseUrl(); ?>";
-    const siteAddressEngage = "<?= ltSiteHostAddress() ?>";
-    const getTokenNameNew = "<?= ApiTokenDetails::tokenName(); ?>";
-
-    const LW_TOKEN_ENGAGE = localStorage.getItem(`${getTokenNameNew}`);
+    
+    
+    const BASE_ENGAGE = window.LT_CONFIG?.baseUrl;
+    const siteAddressEngage = window.LT_CONFIG?.siteHostAddress;
+    const LW_TOKEN_ENGAGE = window.LT_CONFIG?.token;
     
 </script>
