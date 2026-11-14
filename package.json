@@ -2,7 +2,7 @@
   "ltId": "179395723519157",
   "packageName": "MdEngagement",
   "packageType": "module",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "dependsOn": [
     {
       "packageName": "MdLt",
